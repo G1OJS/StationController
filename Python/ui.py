@@ -3,6 +3,7 @@ import tkinter as tk
 import memoryFuncs
 from tkinter import simpledialog
 from rigctrld import rigctrld
+import IcomCIV
 import ants
 import mcu
 import wsjt
@@ -14,7 +15,7 @@ class FollowMode(Enum):
     SET_ANTENNAS_AND_TUNE = "Set antennas and tune loop"
     TUNE_LOOP_ONLY = "Tune loop only"
 
-def init_vars(app):
+def init(app):
         app.fkHz = tk.IntVar()
         app.selectedRxAntenna = tk.StringVar()
         app.selectedTxAntenna = tk.StringVar()
@@ -22,6 +23,7 @@ def init_vars(app):
         app.tuningStep = tk.IntVar()
         app.follow_mode = tk.StringVar(value=FollowMode.SET_ANTENNAS_AND_TUNE.value)
         app.active_ant_was_selected_at_tuning_start = False
+     #   IcomCIV.connectIcom(app, icom_freqChange)
 
 def set_antenna_selection_from_frequency(app):
     f = app.fkHz.get()
@@ -36,9 +38,7 @@ def set_antenna_selection_from_frequency(app):
     else:
         app.rxMain.invoke()
  
-def update_frequency(app):
-    fHz = rigctrld.get_frequency()
-#    wsjt.checkWSJT()
+def icom_freqChange(app, fHz):
     if fHz:
         fkHz_old = app.fkHz.get()
         app.fkHz.set(int(round(fHz / 1000)))
@@ -51,11 +51,28 @@ def update_frequency(app):
                 ants.tune_loop_from_frequency(app)
             elif mode == FollowMode.TUNE_LOOP_ONLY:
                 ants.tune_loop_from_frequency(app)
-    app.after(250, update_frequency, app)
+
+def pollWSJTX(app):
+    wsjt.checkWSJT()
+    fHz = wsjt.freq_hz
+    print(f"{fHz} from WSJTX")
+    if fHz:
+        fkHz_old = app.fkHz.get()
+        app.fkHz.set(int(round(fHz / 1000)))
+        if abs(app.fkHz.get() - fkHz_old) > 2:
+            mode = FollowMode(app.follow_mode.get())
+            if mode == FollowMode.SET_ANTENNAS:
+                set_antenna_selection_from_frequency(app)
+            elif mode == FollowMode.SET_ANTENNAS_AND_TUNE:
+                set_antenna_selection_from_frequency(app)
+                ants.tune_loop_from_frequency(app)
+            elif mode == FollowMode.TUNE_LOOP_ONLY:
+                ants.tune_loop_from_frequency(app)
+    app.after(250, pollWSJTX, app)
 
 def tune_to_memory(app, mem):
     app.fkHz.set(mem.freq_hz // 1000)
-#   wsjt.freq_hz = mem.freq_hz
+    wsjt.freq_hz = mem.freq_hz
     rigctrld.rigctl_session([
         f"F {mem.freq_hz}",
         f"M {mem.mode} {mem.bandwidth}"
