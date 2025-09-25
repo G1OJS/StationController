@@ -1,0 +1,18 @@
+
+# Packaging
+*.egg-info/
+dist/
+build/
+
+# Python
+__pycache__/
+*.pyc
+
+# Dynamic
+docs/outline.html
+docs/user_functions.html
+
+#nec folders
+nec_wkg/
+NECBOL-dev.lnk
+
