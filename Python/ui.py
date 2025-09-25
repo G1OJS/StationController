@@ -8,6 +8,13 @@ import ants
 import mcu
 import wsjt
 from enum import Enum
+<<<<<<< Updated upstream
+=======
+import IcomCIV
+import wsjt
+
+icom = IcomCIV.IcomCIV()
+>>>>>>> Stashed changes
 
 class FollowMode(Enum):
     DO_NOTHING = "Do nothing"
@@ -38,7 +45,13 @@ def set_antenna_selection_from_frequency(app):
     else:
         app.rxMain.invoke()
  
+<<<<<<< Updated upstream
 def icom_freqChange(app, fHz):
+=======
+def update_frequency(app):
+    wsjt.checkWSJT()
+    fHz = f = icom.getFreqHz()
+>>>>>>> Stashed changes
     if fHz:
         fkHz_old = app.fkHz.get()
         app.fkHz.set(int(round(fHz / 1000)))
@@ -51,6 +64,7 @@ def icom_freqChange(app, fHz):
                 ants.tune_loop_from_frequency(app)
             elif mode == FollowMode.TUNE_LOOP_ONLY:
                 ants.tune_loop_from_frequency(app)
+<<<<<<< Updated upstream
 
 def pollWSJTX(app):
     wsjt.checkWSJT()
@@ -77,6 +91,14 @@ def tune_to_memory(app, mem):
         f"F {mem.freq_hz}",
         f"M {mem.mode} {mem.bandwidth}"
     ])
+=======
+    app.after(1250, update_frequency, app)
+
+def tune_to_memory(app, mem):
+    app.fkHz.set(mem.freq_hz // 1000)
+    icom.setFreqHz(mem.freq_hz)
+    icom.setMode(mem.mode)
+>>>>>>> Stashed changes
 
 def prompt_frequency_input(app):
     user_input = simpledialog.askstring("Set Frequency", "Enter frequency in kHz (e.g. 14074):")
@@ -85,7 +107,7 @@ def prompt_frequency_input(app):
             freq_khz = float(user_input)
             freq_hz = int(freq_khz * 1000)
             app.fkHz.set(freq_khz)
-            rigctrld.set_frequency(freq_hz)
+            icom.setFreqHz(mem.freq_hz)
         except ValueError:
             print("Invalid frequency input.")
 

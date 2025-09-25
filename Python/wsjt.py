@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
+
 import socket
+import time
 
 HOST = "127.0.0.1"
 PORT = 4532
@@ -54,6 +55,8 @@ def _dump_state():
     return message
 
 def checkWSJT():
+    global freq_hz
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((HOST, PORT))
@@ -64,42 +67,37 @@ def checkWSJT():
 
         with conn:
             buffer = ""
-            data = conn.recv(1024)
-            if not data:
-                return
-            buffer += data.decode("ascii")
-            while "\n" in buffer:
-                line, buffer = buffer.split("\n", 1)
-                line = line.strip()
-                print("RX:", line)
+            while True:
+                data = conn.recv(1024)
+                if not data:
+                    break
+                buffer += data.decode("ascii")
+                while "\n" in buffer:
+                    line, buffer = buffer.split("\n", 1)
+                    line = line.strip()
+                    print("RX:", line)
 
-                if line.startswith("\\get_powerstat"):
-                    conn.sendall(b"1\n")
-                elif line.startswith("\\chk_vfo"):
-                    conn.sendall(b"CHKVFO 0\n")
-                elif line.startswith("\\dump_state"):
-                    conn.sendall(_dump_state().encode('ASCII'))
-                elif line.startswith("f"):
-                    conn.sendall(f"{freq_hz}\n".encode("ascii"))
-                elif line.startswith("F "):
-                    _, v = line.split()
-                    freq_hz = v
-                    print("Frequency set to", freq_hz)
-                    conn.sendall(b"RPRT 0\n")
-                elif line.startswith("q"):
-                    conn.sendall(b"RPRT 0\n")
-                    print("Client requested quit")
-                    conn.close()
-                    # Go back to accept a new connection instead of break
-                    conn, addr = s.accept()
-                    print("Connected from", addr)
-                    continue
-                elif line == "v":
-                    conn.sendall(b"VFOA\n")
-                    continue
-                elif line.startswith("V"):      # upper-case V: set VFO
-                    conn.sendall(b"RPRT 0\n")
-                    continue
-                else:
-                    conn.sendall(b"RPRT 0\n")
+                    if line.startswith("\\get_powerstat"):
+                        conn.sendall(b"1\n")
+                    elif line.startswith("\\chk_vfo"):
+                        conn.sendall(b"VFOA 0\n")
+                    elif line.startswith("\\dump_state"):
+                        conn.sendall(_dump_state().encode("ascii"))
+                    elif line.startswith("v"):
+                        conn.sendall(b"VFOA 0\n")
+                    elif line.startswith("f"):
+                        conn.sendall(f"{freq_hz}\n".encode("ascii"))
+                    elif line.startswith("F "):
+                        _, v = line.split()
+                        freq_hz = v
+                        print("Frequency set to", freq_hz)
+                        conn.sendall(b"VFOA 0\n")
+                    elif line.startswith("q"):
+                        conn.sendall(b"RPRT 0\n")
+                        conn.close()
+                        return
+                     #   conn, addr = s.accept()
+                    else:
+                        conn.sendall(b"RPRT 0\n")
 
+checkWSJT()
