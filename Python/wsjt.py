@@ -87,6 +87,7 @@ def checkWSJT():
                         conn.sendall(b"VFOA 0\n")
                     elif line.startswith("f"):
                         conn.sendall(f"{freq_hz}\n".encode("ascii"))
+                        return
                     elif line.startswith("F "):
                         _, v = line.split()
                         freq_hz = v
@@ -100,4 +101,4 @@ def checkWSJT():
                     else:
                         conn.sendall(b"RPRT 0\n")
 
-checkWSJT()
+#checkWSJT()

@@ -5,7 +5,6 @@ import ui
 import mcu
 import ants
 
-#import wsjt
 
 class AntennaControlApp(tk.Tk):
     def __init__(self):
@@ -15,7 +14,6 @@ class AntennaControlApp(tk.Tk):
         ui.init(self)
         ui.build_gui(self)
         ants.load_freq_dict(self)
-        self.after(100,ui.pollWSJTX, self)
 
     def debug(self, txt):
         t = datetime.datetime.now(datetime.timezone.utc)
