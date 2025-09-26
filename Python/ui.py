@@ -56,7 +56,7 @@ def update_frequency(app):
             elif mode == FollowMode.TUNE_LOOP_ONLY:
                 ants.tune_loop_from_frequency(app)
 
-    app.after(250, update_frequency, app)
+    app.after(50, update_frequency, app)
 
 def tune_to_memory(app, mem):
     app.fkHz.set(mem.freq_hz // 1000)

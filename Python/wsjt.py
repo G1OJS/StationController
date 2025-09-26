@@ -126,12 +126,15 @@ class wsjt:
 
         if(data ==  b'M VFOA PKTUSB -1\n'):
             self.respond("RPRT 0")
-            
-#        if (data.startswith(b'T')):
-#            self.respond("1")
 
-#        if (data.startswith(b'S')):
-#            self.respond("RPRT 0")
+        if(data == b'T VFOA 1\n'):
+            #PTT on
+            self.respond("RPRT 0")            
+
+        if(data == b'T VFOA 0\n'):
+            #PTT off
+            self.respond("RPRT 0")            
+
             
         if (data == b'q\n'):
             self.s.close()
