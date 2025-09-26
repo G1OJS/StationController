@@ -34,9 +34,15 @@ class IcomCIV:
         mdIdx = ['LSB','USB','AM','CW','RTTY','FM','WFM','CW-R','RTTY-R'].index(md)
         datIdx = 1 if dat else 0
         self.sendCAT(b''.join([b'\x26\x00', bytes([mdIdx]), bytes([datIdx]), bytes([filIdx]) ]) )
-                
+
+    def setPTTON(self):
+        pass
+
+    def setPTTOFF(self):
+        pass              
 
 #icom = IcomCIV()
+#icom.setPTTON()
 #icom.setUSBD();
 #icom.setFreqHz(14123450)
 

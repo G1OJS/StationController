@@ -16,8 +16,6 @@ class AntennaControlApp(tk.Tk):
         ants.load_freq_dict(self)
 
     def debug(self, txt):
-        if("CAT" in txt):
-            return
         t = datetime.datetime.now(datetime.timezone.utc)
         print(f"{t.strftime("%H:%M:%S")}: {txt}")
 

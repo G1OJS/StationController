@@ -41,6 +41,7 @@ def set_antenna_selection_from_frequency(app):
         app.rxMain.invoke()
  
 def update_frequency(app):
+    app.icom.setPTTON()
     app.wsjtx.poll()
     fHz = app.icom.getFreqHz()
     if fHz:
