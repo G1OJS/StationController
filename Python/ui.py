@@ -43,6 +43,7 @@ def set_antenna_selection_from_frequency(app):
 def loop(app):
     app.wsjtx.poll()
     fHz = app.icom.getFreqHz()
+    app.wsjtx.setfHz(fHz)
     if fHz:
         fkHz_old = app.fkHz.get()
         app.fkHz.set(int(round(fHz / 1000)))
