@@ -36,10 +36,10 @@ class IcomCIV:
         self.sendCAT(b''.join([b'\x26\x00', bytes([mdIdx]), bytes([datIdx]), bytes([filIdx]) ]) )
 
     def setPTTON(self):
-        pass
+        self.sendCAT(b'\x1c\x00\x01')
 
     def setPTTOFF(self):
-        pass              
+        self.sendCAT(b'\x1c\x00\x00')            
 
 #icom = IcomCIV()
 #icom.setPTTON()
