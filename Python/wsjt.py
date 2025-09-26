@@ -1,6 +1,6 @@
 import socket
 import time
-
+# https://hamlib.sourceforge.net/html/rigctld.1.html
 
 def _dump_state():
     # hamlib expects this large table of rig info when connecting
@@ -54,14 +54,13 @@ HOST = "127.0.0.1"
 PORT = 4532
 
 class wsjt:
-    def __init__(self, app):
+    def __init__(self, app = None):
         self.fHz = 14074000
-        self.mode = 'USB'
         self.handshake_responses = {
             b'\\get_powerstat\n':   '1',
             b'\\chk_vfo\n':         '1',
             b'\\dump_state\n':      f"{_dump_state()}",
-            b'v\n':                 'VFOA 0'
+            b'v\n':                 'VFOA'
             }
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -80,10 +79,7 @@ class wsjt:
             self.app.debug("WSJTX: connected")
             return True
         except BlockingIOError:
-            return False
-
-    def getMode(self):
-        return self.mode            
+            return False        
 
     def getfHz(self):
         return self.fHz
@@ -107,15 +103,39 @@ class wsjt:
         if(data in self.handshake_responses):
             resp = self.handshake_responses[data]
             self.respond(resp)
+
+        if (data.startswith(b't')):
+            self.respond("0")
+
+        if (data.startswith(b's')):
+            self.respond("RPRT 0")
+            
         if (data == b'f VFOA\n'):
             self.respond(self.getfHz())
         if (data == b'm VFOA\n'):
-            self.respond(self.getMode())
+            self.respond("USB 3000")
+            self.respond("RPRT 0")
+            
         if (data.startswith(b'F')):
             self.setfHz(float(data.split()[2]))
             self.respond("RPRT 0")
-        if (data == b'q'):
-            self.conn, _  = self.s.accept()
+
+        if(data == b'\\get_lock_mode\n'):
+            self.respond("0")         
+            self.respond("RPRT 0")
+
+        if(data ==  b'M VFOA PKTUSB -1\n'):
+            self.respond("RPRT 0")
+            
+#        if (data.startswith(b'T')):
+#            self.respond("1")
+
+#        if (data.startswith(b'S')):
+#            self.respond("RPRT 0")
+            
+        if (data == b'q\n'):
+            self.s.close()
+            self.acceptIfNeeded()
             return True
         return False
 
