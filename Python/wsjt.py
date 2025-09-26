@@ -54,7 +54,7 @@ HOST = "127.0.0.1"
 PORT = 4532
 
 class wsjt:
-    def __init__(self, app = None):
+    def __init__(self, app, pttOn, pttOff):
         self.fHz = 14074000
         self.handshake_responses = {
             b'\\get_powerstat\n':   '1',
@@ -69,6 +69,8 @@ class wsjt:
         self.s.setblocking(False)
         self.conn = None
         self.app = app
+        self.pttOn = pttOn
+        self.pttOff = pttOff
 
     def acceptIfNeeded(self):
         if(self.conn):
@@ -128,11 +130,11 @@ class wsjt:
             self.respond("RPRT 0")
 
         if(data == b'T VFOA 1\n'):
-            #PTT on
+            self.pttOn()
             self.respond("RPRT 0")            
 
         if(data == b'T VFOA 0\n'):
-            #PTT off
+            self.pttOff()
             self.respond("RPRT 0")            
 
             

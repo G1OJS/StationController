@@ -17,7 +17,7 @@ class FollowMode(Enum):
 
 def init(app):
         app.icom = IcomCIV.IcomCIV(app)
-        app.wsjtx = wsjt.wsjt(app)
+        app.wsjtx = wsjt.wsjt(app, app.icom.setPTTON, app.icom.setPTTOFF)
         app.fkHz = tk.IntVar()
         app.selectedRxAntenna = tk.StringVar()
         app.selectedTxAntenna = tk.StringVar()
@@ -25,7 +25,7 @@ def init(app):
         app.tuningStep = tk.IntVar()
         app.follow_mode = tk.StringVar(value=FollowMode.SET_ANTENNAS_AND_TUNE.value)
         app.active_ant_was_selected_at_tuning_start = False
-        app.after(10, update_frequency, app)
+        app.after(10, loop, app)
 
 def set_antenna_selection_from_frequency(app):
     f = app.fkHz.get()
@@ -40,8 +40,7 @@ def set_antenna_selection_from_frequency(app):
     else:
         app.rxMain.invoke()
  
-def update_frequency(app):
-    app.icom.setPTTON()
+def loop(app):
     app.wsjtx.poll()
     fHz = app.icom.getFreqHz()
     if fHz:
@@ -56,8 +55,7 @@ def update_frequency(app):
                 ants.tune_loop_from_frequency(app)
             elif mode == FollowMode.TUNE_LOOP_ONLY:
                 ants.tune_loop_from_frequency(app)
-
-    app.after(50, update_frequency, app)
+    app.after(50, loop, app)
 
 def tune_to_memory(app, mem):
     app.fkHz.set(mem.freq_hz // 1000)
