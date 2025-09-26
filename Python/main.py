@@ -17,7 +17,7 @@ class AntennaControlApp(tk.Tk):
 
     def debug(self, txt):
         t = datetime.datetime.now(datetime.timezone.utc)
-        print(t.strftime("%H:%M:%S") + ": Arduino " + txt)
+        print(f"{t.strftime("%H:%M:%S")}: {txt}")
 
 if __name__ == "__main__":
     app = AntennaControlApp()

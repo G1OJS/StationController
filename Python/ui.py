@@ -9,10 +9,6 @@ import mcu
 import wsjt
 from enum import Enum
 
-
-icom = IcomCIV.IcomCIV()
-
-
 class FollowMode(Enum):
     DO_NOTHING = "Do nothing"
     SET_ANTENNAS = "Set antennas"
@@ -20,6 +16,8 @@ class FollowMode(Enum):
     TUNE_LOOP_ONLY = "Tune loop only"
 
 def init(app):
+        app.icom = IcomCIV.IcomCIV()
+        app.wsjtx = wsjt.wsjt(app)
         app.fkHz = tk.IntVar()
         app.selectedRxAntenna = tk.StringVar()
         app.selectedTxAntenna = tk.StringVar()
@@ -43,8 +41,9 @@ def set_antenna_selection_from_frequency(app):
         app.rxMain.invoke()
  
 def update_frequency(app):
- #   wsjt.checkWSJT()
-    fHz = f = icom.getFreqHz()
+    app.wsjtx.poll()
+    fHz = app.icom.getFreqHz()
+    app.wsjtx.setfHz(fHz)
     if fHz:
         fkHz_old = app.fkHz.get()
         app.fkHz.set(int(round(fHz / 1000)))
@@ -62,8 +61,8 @@ def update_frequency(app):
 
 def tune_to_memory(app, mem):
     app.fkHz.set(mem.freq_hz // 1000)
-    icom.setFreqHz(mem.freq_hz)
-    icom.setMode(mem.mode)
+    app.icom.setFreqHz(mem.freq_hz)
+    app.icom.setMode(mem.mode)
 
 
 def prompt_frequency_input(app):
