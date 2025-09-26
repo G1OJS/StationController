@@ -16,7 +16,7 @@ class FollowMode(Enum):
     TUNE_LOOP_ONLY = "Tune loop only"
 
 def init(app):
-        app.icom = IcomCIV.IcomCIV()
+        app.icom = IcomCIV.IcomCIV(app)
         app.wsjtx = wsjt.wsjt(app)
         app.fkHz = tk.IntVar()
         app.selectedRxAntenna = tk.StringVar()
