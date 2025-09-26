@@ -43,7 +43,6 @@ def set_antenna_selection_from_frequency(app):
 def update_frequency(app):
     app.wsjtx.poll()
     fHz = app.icom.getFreqHz()
-    app.wsjtx.setfHz(fHz)
     if fHz:
         fkHz_old = app.fkHz.get()
         app.fkHz.set(int(round(fHz / 1000)))
@@ -61,8 +60,13 @@ def update_frequency(app):
 
 def tune_to_memory(app, mem):
     app.fkHz.set(mem.freq_hz // 1000)
+    app.wsjtx.setfHz(mem.freq_hz)
     app.icom.setFreqHz(mem.freq_hz)
-    app.icom.setMode(mem.mode)
+    md = mem.mode
+    if(md == 'USB-D'):
+        app.icom.setMode('USB', True)
+    else:
+        app.icom.setMode(md)
 
 
 def prompt_frequency_input(app):
