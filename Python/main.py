@@ -18,7 +18,7 @@ class AntennaControlApp(tk.Tk):
         ants.load_freq_dict(self)
         self.icom = IcomCIV.IcomCIV(self)
         self.wsjtx = wsjt.wsjt(self, self.icom.setPTTON, self.icom.setPTTOFF)
-        self.wsjtx.serve()
+        self.wsjtx.serveWSJT()
         self.after(10, ui.checkRigFreqMode, self)
 
     def debug(self, txt):

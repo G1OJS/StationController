@@ -63,80 +63,90 @@ class wsjt:
             b'\\dump_state\n':      f"{_dump_state()}",
             b'v\n':                 'VFOA'
             }
+        self.app = app
+        self.pttOn = pttOn
+        self.pttOff = pttOff
+        self.conn = None
+        self.initSocket()
+
+    def initSocket(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.bind((HOST, PORT))
         self.s.listen(1)
         self.s.setblocking(False)
-        self.conn = None
-        self.app = app
-        self.pttOn = pttOn
-        self.pttOff = pttOff
 
-    def acceptIfNeeded(self):
-        try:
-            self.conn, _ = self.s.accept()
-            self.conn.settimeout(0)
-            self.app.debug("WSJTX: connected")
-        except BlockingIOError:
-            return
-
-    def respond(self, msg):
+    def serveWSJT(self):
+        self.app.after(100, self.serveWSJT)
+        if(not self.s):
+            self.initSocket()
         if(not self.conn):
-            return
-        msg_enc = (str(msg)+"\n").encode("ascii")
-        self.app.debug(f"WSJTX: Sent to WSJTX: {msg_enc}")
-        self.conn.sendall(msg_enc)
-    
-    def serve(self):
-        self.app.after(100, self.serve)    
-        if(not self.conn):
-            self.acceptIfNeeded()
+            try:
+                self.conn, _ = self.s.accept()
+                self.conn.settimeout(0)
+                self.app.debug("WSJTX: connected")
+            except BlockingIOError:
+                return
         if(not self.conn):
             return
         try:
             data = self.conn.recv(1024)
         except BlockingIOError:
             return
+        if(data==b''):
+            self.app.debug("WSJTX: connection closed")
+            self.conn.close()
+            self.conn = None
+            return
+        self.processWSJTMsg(data)
+
+    def respondToWSJT(self, msg):
+        if(not self.conn):
+            return
+        msg_enc = (str(msg)+"\n").encode("ascii")
+        self.app.debug(f"WSJTX: Sent to WSJTX: {msg_enc}")
+        self.conn.sendall(msg_enc)
+    
+    def processWSJTMsg(self, data):
         self.app.debug(f"WSJTX: Received from WSJTX: {data}")
-        
         if(data in self.handshake_responses):
             resp = self.handshake_responses[data]
-            self.respond(resp)
+            self.respondToWSJT(resp)
 
         if (data.startswith(b't')):
-            self.respond("0")
+            self.respondToWSJT("0")
 
         if (data.startswith(b's')):
-            self.respond("RPRT 0")
+            self.respondToWSJT("RPRT 0")
             
         if (data == b'f VFOA\n'):
-            self.respond(self.app.fkHz.get()*1000)
+            self.respondToWSJT(self.app.fkHz.get()*1000)
         if (data == b'm VFOA\n'):
-            self.respond("USB 3000")
-            self.respond("RPRT 0")
+            self.respondToWSJT("USB 3000")
+            self.respondToWSJT("RPRT 0")
             
         if (data.startswith(b'F')):
             self.wsjtHz = float(data.split()[2])
-            self.respond("RPRT 0")
+            self.respondToWSJT("RPRT 0")
 
         if(data == b'\\get_lock_mode\n'):
-            self.respond("0")         
-            self.respond("RPRT 0")
+            self.respondToWSJT("0")         
+            self.respondToWSJT("RPRT 0")
 
         if(data ==  b'M VFOA PKTUSB -1\n'):
-            self.respond("RPRT 0")
+            self.respondToWSJT("RPRT 0")
 
         if(data == b'T VFOA 1\n'):
             self.pttOn()
-            self.respond("RPRT 0")            
+            self.respondToWSJT("RPRT 0")            
 
         if(data == b'T VFOA 0\n'):
             self.pttOff()
-            self.respond("RPRT 0")            
+            self.respondToWSJT("RPRT 0")            
 
         if (data == b'q\n'):
-            self.s.close()
+            self.conn.close()
+            self.conn = None
  
 
 
