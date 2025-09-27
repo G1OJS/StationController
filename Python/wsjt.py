@@ -46,7 +46,8 @@ def _dump_state():
     message += max_rit + max_xit + max_ifshift + announces
     message += preamp + attenuator
     message += get_func + set_func + get_level + set_level
-    message += get_parm + set_parm + vfo_ops + ptt_type + done
+    message += get_parm + set_parm + vfo_ops + ptt_type
+    message += done
 
     return message
 
@@ -55,7 +56,7 @@ PORT = 4532
 
 class wsjt:
     def __init__(self, app, pttOn, pttOff):
-        self.fHz = 14074000
+        self.wsjtHz = 0
         self.handshake_responses = {
             b'\\get_powerstat\n':   '1',
             b'\\chk_vfo\n':         '1',
@@ -73,35 +74,32 @@ class wsjt:
         self.pttOff = pttOff
 
     def acceptIfNeeded(self):
-        if(self.conn):
-            return True
         try:
             self.conn, _ = self.s.accept()
             self.conn.settimeout(0)
             self.app.debug("WSJTX: connected")
-            return True
         except BlockingIOError:
-            return False        
-
-    def getfHz(self):
-        return self.fHz
-    
-    def setfHz(self, fHz):
-        self.fHz = fHz
+            return
 
     def respond(self, msg):
+        if(not self.conn):
+            return
         msg_enc = (str(msg)+"\n").encode("ascii")
         self.app.debug(f"WSJTX: Sent to WSJTX: {msg_enc}")
         self.conn.sendall(msg_enc)
     
-    def poll(self):
-        if(not self.acceptIfNeeded()):
-            return False    # no WSJT comms
+    def serve(self):
+        self.app.after(100, self.serve)    
+        if(not self.conn):
+            self.acceptIfNeeded()
+        if(not self.conn):
+            return
         try:
             data = self.conn.recv(1024)
-        except (BlockingIOError, socket.timeout):
+        except BlockingIOError:
             return
         self.app.debug(f"WSJTX: Received from WSJTX: {data}")
+        
         if(data in self.handshake_responses):
             resp = self.handshake_responses[data]
             self.respond(resp)
@@ -113,13 +111,13 @@ class wsjt:
             self.respond("RPRT 0")
             
         if (data == b'f VFOA\n'):
-            self.respond(self.getfHz())
+            self.respond(self.app.fkHz.get()*1000)
         if (data == b'm VFOA\n'):
             self.respond("USB 3000")
             self.respond("RPRT 0")
             
         if (data.startswith(b'F')):
-            self.setfHz(float(data.split()[2]))
+            self.wsjtHz = float(data.split()[2])
             self.respond("RPRT 0")
 
         if(data == b'\\get_lock_mode\n'):
@@ -137,23 +135,12 @@ class wsjt:
             self.pttOff()
             self.respond("RPRT 0")            
 
-            
         if (data == b'q\n'):
             self.s.close()
-            self.acceptIfNeeded()
-            return True
-        return False
+ 
 
 
-def test():
-# for testing this emulates what will live in the rest of the app:
-    wsjtx = wsjt()
-    while True:
-        wsjtx.poll()
-        self.app.debug("WSJTX: Running")
-        time.sleep(2)
 
-#test()
 
 
 
