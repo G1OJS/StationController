@@ -17,6 +17,7 @@ class IcomCIV:
     def getFreqHz(self):
         while self.serial_port.read():
             pass
+        self.app.debug(f"CAT command: get frequency")
         self.sendCAT(b'\x03')
         resp = self.serial_port.read_until()
         self.app.debug(f"CAT: Icom responded with {resp}")
@@ -26,19 +27,23 @@ class IcomCIV:
 
     def setFreqHz(self, freqHz):
         s = f"{freqHz:09d}"
+        self.app.debug(f"CAT command: SET frequency")
         self.app.debug(f"CAT: {s}")
         fBytes = b"".join(bytes([b]) for b in [16*int(s[7])+int(s[8]),16*int(s[5])+int(s[6]),16*int(s[3])+int(s[4]),16*int(s[1])+int(s[2]), int(s[0])])
         self.sendCAT(b"".join([b'\x00', fBytes]))
 
     def setMode(self, md='USB', dat=False, filIdx = 1 ):
+        self.app.debug(f"CAT command: SET mode: {md} data:{dat} filter:{filIdx}")
         mdIdx = ['LSB','USB','AM','CW','RTTY','FM','WFM','CW-R','RTTY-R'].index(md)
         datIdx = 1 if dat else 0
         self.sendCAT(b''.join([b'\x26\x00', bytes([mdIdx]), bytes([datIdx]), bytes([filIdx]) ]) )
 
     def setPTTON(self):
+        self.app.debug(f"CAT command: PTT On")
         self.sendCAT(b'\x1c\x00\x01')
 
     def setPTTOFF(self):
+        self.app.debug(f"CAT command: PTT Off")
         self.sendCAT(b'\x1c\x00\x00')            
 
 #icom = IcomCIV()

@@ -9,5 +9,5 @@ def connect_arduino(app):
 def send_command(app, c):
     if c:
         s = f"<{c}>"
-        app.debug("Sending command: " + s)
+        app.debug("Commanding Arduino: " + s)
         app.arduino.write(s.encode('UTF-8'))

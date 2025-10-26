@@ -102,7 +102,8 @@ class wsjt:
 
     def respondToWSJT(self, msg):
         if(not self.conn):
-            return
+            print("No connection")
+            serveWSJT()
         msg_enc = (str(msg)+"\n").encode("ascii")
         self.app.debug(f"WSJTX: Sent to WSJTX: {msg_enc}")
         self.conn.sendall(msg_enc)
@@ -121,8 +122,12 @@ class wsjt:
             
         if (data == b'f VFOA\n'):
             self.respondToWSJT(self.app.fkHz.get()*1000)
+
+        if (data == b'f VFOB\n'):
+            self.respondToWSJT(self.app.fkHz.get()*1000)
+            
         if (data == b'm VFOA\n'):
-            self.respondToWSJT("USB 3000")
+            self.respondToWSJT("PKTUSB 3000")
             self.respondToWSJT("RPRT 0")
             
         if (data.startswith(b'F')):
@@ -137,8 +142,13 @@ class wsjt:
             self.respondToWSJT("RPRT 0")
 
         if(data == b'T VFOA 1\n'):
-            self.pttOn()
+            print("WSJT says PTT")
+          #  self.pttOn()
             self.respondToWSJT("RPRT 0")            
+
+        if(data == b'T VFOA 3\n'):
+            self.pttOn()
+            self.respondToWSJT("RPRT 0")   
 
         if(data == b'T VFOA 0\n'):
             self.pttOff()

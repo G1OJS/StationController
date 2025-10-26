@@ -20,14 +20,17 @@ class AntennaControlApp(tk.Tk):
         self.wsjtx = wsjt.wsjt(self, self.icom.setPTTON, self.icom.setPTTOFF)
         self.wsjtx.serveWSJT()
         self.after(10, ui.checkRigFreqMode, self)
+        with open('controller_session.log','w') as f:
+            f.write('')
 
     def debug(self, txt):
- #       if("CAT" in txt):
- #           return
         if("Received" in txt):
             print()
         t = datetime.datetime.now(datetime.timezone.utc)
-        print(f"{t.strftime("%H:%M:%S")}: {txt}")
+        logstr = f"{t.strftime("%H:%M:%S")}: {txt}"
+        print(logstr)
+        with open('controller_session.log','a') as f:
+            f.write(logstr+'\n')
 
 if __name__ == "__main__":
     app = AntennaControlApp()

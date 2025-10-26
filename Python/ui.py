@@ -2,7 +2,6 @@ from tkinter import ttk
 import tkinter as tk
 import memoryFuncs
 from tkinter import simpledialog
-from rigctrld import rigctrld
 import ants
 import mcu
 from enum import Enum
